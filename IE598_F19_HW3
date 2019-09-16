@@ -1,0 +1,50 @@
+import pandas as pd
+from pandas import DataFrame
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+df = pd.read_csv("C:\HY_Universe_corporate bond.csv")
+
+#basic data information for each column, include: mean, std, minum, maxiam, and percentiles.
+print(df.describe())
+
+#This is a histgram of coupon. It looks like there are large of companies's coupon rate are between 4% - 8%.
+bin_edge = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+plt.hist(df['Coupon'], bins=bin_edge)
+plt.xlabel('Coupon')
+plt.ylabel('count')
+plt.show()
+
+#This is the ECDF. about 85% of trades have colume below 2+1e9.
+x = np.sort(df['volume_trades'])
+y = np.arange(1, len(x)+1)/len(x)
+_ = plt.plot(x, y, marker='.', linestyle='none')
+_ = plt.xlabel('volume_trades')
+_ = plt.ylabel('ECDF')
+plt.margins(0.02)
+plt.show()
+
+# I calculate the covariance and correlation coefficient between volume of trades and issued amount.
+# There is a positive correlation between them.
+covariance_matrix = np.cov(df['volume_trades'], df['Issued Amount'])
+volume_cov = covariance_matrix[0,1]
+print('covariance of volume of trades and issued amount is ' + str(volume_cov))
+def pearson_r(x, y):
+    corr_mat = np.corrcoef(x, y)
+    return corr_mat[0,1]
+r = pearson_r(df['volume_trades'], df['Issued Amount'])
+print('correlation coefficient between volume and issued amount is ' + str(r))
+plt.plot(df['volume_trades']/1000000, df['Issued Amount']/1000000, marker = '.', linestyle = 'none')
+plt.xlabel('volume of trades')
+plt.ylabel('issued amount')
+plt.show
+
+# Here is the heat map that describe correlation between attributes in the dataframe.
+corMat = DataFrame(df.corr())
+plt.pcolor(corMat)
+plt.show()
+
+print("My name is Xinya Liu")
+print("My NetID is: xinyal2")
+print("I hereby certify that I have read the University policy on Academic Integrity and that I am not in violation.")
