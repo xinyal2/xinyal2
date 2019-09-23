@@ -1,0 +1,179 @@
+import pandas as pd
+import numpy as np
+from pandas import DataFrame
+import matplotlib.pyplot as plt
+import seaborn as sns
+import statsmodels.api as sm
+import sklearn
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import r2_score
+from sklearn.linear_model import Ridge
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import cross_val_score
+from sklearn.linear_model import Lasso
+
+df = pd.read_csv('C:\housing2.csv')
+
+df1 = df.drop(columns = ['ATT1', 'ATT2', 'ATT3', 'ATT4', 'ATT5', 'ATT6', 'ATT7', 'ATT8', 'ATT9', 'ATT10', 'ATT11', 'ATT12', 'ATT13'])
+print(df1.describe())
+
+#This is a histgram of age of houses
+#Over 120 houses are build about 100 years
+sns.set()
+plt.hist(df['AGE'])
+plt.xlabel('Age')
+plt.ylabel('count')
+plt.show()
+
+#This is the ECDF of crime. There are 80% of the house that per capita crime happened under 2
+x = np.sort(df['CRIM'])
+y = np.arange(1, len(x)+1)/len(x)
+_ = plt.plot(x, y, marker='.', linestyle='none')
+_ = plt.xlabel('Crime')
+_ = plt.ylabel('ECDF')
+plt.margins(0.02)
+plt.show()
+
+# Here is he heat map I made to observe correlation of the data
+df2 = pd.DataFrame(df).fillna(df.mean())
+cols = ['LSTAT', 'INDUS', 'NOX', 'RM', 'MEDV']
+cm = np.corrcoef(df2[cols].values.T)
+sns.set(font_scale = 1.5)
+hm = sns.heatmap(cm, cbar = True, annot = True, square = True, fmt = '.2f', annot_kws = {'size': 15}, yticklabels = cols, xticklabels = cols)
+plt.show()
+
+# This is scatter plot of low status population and median values of house in USD 1000
+# You can see there is a negative relationship between these two datas
+# which means higher populations of low status, lower median values of house
+plt.plot(df['LSTAT'], df['MEDV'], marker = '.', linestyle = 'none')
+plt.xlabel('Low statu population')
+plt.ylabel('Median value of house')
+plt.show()
+
+#Scatter plot of LSTAT, INDUS, NOX, RM, and MEDV
+cols = ['LSTAT', 'INDUS', 'NOX', 'RM', 'MEDV']
+sns.pairplot(df[cols], size = 1.8)
+plt.tight_layout()
+plt.show()
+
+features = df.drop(columns = ['MEDV']).values
+df2 = pd.DataFrame(df).fillna(df.mean())
+target = df2['MEDV'].values
+X_train, X_test, y_train, y_test = train_test_split(features, target, test_size = 0.2, random_state = 42)
+
+#Lineaer Regression
+reg_all = LinearRegression()
+reg_all.fit(X_train, y_train)
+y_train_pred = reg_all.predict(X_train)
+y_test_pred = reg_all.predict(X_test)
+print('MSE Train: %.3f, test: %.3f' %(mean_squared_error(y_train, y_train_pred), mean_squared_error(y_test, y_test_pred)))
+print('R^2 train: %.3f, test: %.3f' %(r2_score(y_train, y_train_pred), r2_score(y_test, y_test_pred)))
+
+plt.scatter(y_train_pred, y_train_pred - y_train, c = 'steelblue', 
+            edgecolor = 'white', marker = 'o', s = 35, alpha = 0.9, label = 'Training data')
+plt.scatter(y_test_pred, y_test_pred - y_test, c = 'limegreen', edgecolor = 'white', marker = 's', s = 35, alpha = 0.9, label = 'Test data')
+plt.xlabel('Predicted values')
+plt.ylabel('Residuals')
+plt.legend(loc = 'upper left')
+plt.hlines (y = 0, xmin = -10, xmax = 50, lw = 2, color = 'black')
+plt.xlim([-10, 50])
+plt.show()
+
+print("Coefficients :{}".format(reg_all.coef_))
+print("y_intercept: {}".format(reg_all.intercept_))
+
+#Ridge Regression-Alpha test
+alpha_space = np.logspace(-4, 0, 50)
+ridge_scores = []
+ridge_scores_std = []
+ridge = Ridge(normalize = True)
+for alpha in alpha_space:
+    ridge.alpha = alpha
+    ridge_cv_scores = cross_val_score(ridge, features, target, cv = 10)
+    ridge_scores.append(np.mean(ridge_cv_scores))
+    ridge_scores_std.append(np.std(ridge_cv_scores))
+def display_plot(cv_scores, cv_scores_std):
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    ax.plot(alpha_space, cv_scores)
+    
+    std_error = cv_scores_std/ np.sqrt(10)
+    
+    ax.fill_between(alpha_space, cv_scores + std_error, cv_scores - std_error, alpha = 0.2)
+    ax.set_ylabel('cv error')
+    ax.set_xlabel('Alpha')
+    ax.axhline(np.max(cv_scores), linestyle = '--', color = '.5')
+    ax.set_xlim([alpha_space[0], alpha_space[-1]])
+    ax.set_xscale('log')
+    plt.show()
+display_plot(ridge_scores, ridge_scores_std)
+
+#Ridge regression
+ridge = Ridge(alpha = 7)
+ridge.fit(X_train, y_train)
+y_train_pred = ridge.predict(X_train)
+y_test_pred = ridge.predict(X_test)
+print('MSE Train: %.3f, test: %.3f' %(mean_squared_error(y_train, y_train_pred), mean_squared_error(y_test, y_test_pred)))
+print('R^2 train: %.3f, test: %.3f' %(r2_score(y_train, y_train_pred), r2_score(y_test, y_test_pred)))
+plt.scatter(y_train_pred, y_train_pred - y_train, c = 'steelblue', 
+            edgecolor = 'white', marker = 'o', s = 35, alpha = 0.9, label = 'Training data')
+plt.scatter(y_test_pred, y_test_pred - y_test, c = 'limegreen', edgecolor = 'white', marker = 's', s = 35, alpha = 0.9, label = 'Test data')
+plt.xlabel('Predicted values')
+plt.ylabel('Residuals')
+plt.legend(loc = 'upper left')
+plt.hlines (y = 0, xmin = -10, xmax = 50, lw = 2, color = 'black')
+plt.xlim([-10, 50])
+plt.show()
+
+print("Coefficients :{}".format(ridge.coef_))
+print("y_intercept: {}".format(ridge.intercept_))
+
+#Lasso Regression - Alpha test
+alpha_space = np.logspace(-4, 0, 50)
+lasso_scores = []
+lasso_scores_std = []
+lasso = Lasso(normalize = True)
+for alpha in alpha_space:
+    lasso.alpha = alpha
+    lasso_cv_scores = cross_val_score(lasso, features, target, cv = 10)
+    lasso_scores.append(np.mean(lasso_cv_scores))
+    lasso_scores_std.append(np.std(lasso_cv_scores))
+def display_plot(cv_scores, cv_scores_std):
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    ax.plot(alpha_space, cv_scores)
+    
+    std_error = cv_scores_std/ np.sqrt(10)
+    
+    ax.fill_between(alpha_space, cv_scores + std_error, cv_scores - std_error, alpha = 0.2)
+    ax.set_ylabel('cv error')
+    ax.set_xlabel('Alpha')
+    ax.axhline(np.max(cv_scores), linestyle = '--', color = '.5')
+    ax.set_xlim([alpha_space[0], alpha_space[-1]])
+    ax.set_xscale('log')
+    plt.show()
+display_plot(lasso_scores, lasso_scores_std)
+
+#Lasso Regression
+lasso = Lasso(alpha = 0.08)
+lasso.fit(X_train, y_train)
+y_train_pred = lasso.predict(X_train)
+y_test_pred = lasso.predict(X_test)
+print('MSE Train: %.3f, test: %.3f' %(mean_squared_error(y_train, y_train_pred), mean_squared_error(y_test, y_test_pred)))
+print('R^2 train: %.3f, test: %.3f' %(r2_score(y_train, y_train_pred), r2_score(y_test, y_test_pred)))
+plt.scatter(y_train_pred, y_train_pred - y_train, c = 'steelblue', 
+            edgecolor = 'white', marker = 'o', s = 35, alpha = 0.9, label = 'Training data')
+plt.scatter(y_test_pred, y_test_pred - y_test, c = 'limegreen', edgecolor = 'white', marker = 's', s = 35, alpha = 0.9, label = 'Test data')
+plt.xlabel('Predicted values')
+plt.ylabel('Residuals')
+plt.legend(loc = 'upper left')
+plt.hlines (y = 0, xmin = -10, xmax = 50, lw = 2, color = 'black')
+plt.xlim([-10, 50])
+plt.show()
+
+print("Coefficients :{}".format(lasso.coef_))
+print("y_intercept: {}".format(lasso.intercept_))
