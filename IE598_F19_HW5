@@ -72,3 +72,69 @@ plt.xlabel('Princial component index')
 plt.legend(loc = 'best')
 plt.show()
 
+from sklearn.linear_model import LogisticRegression
+from sklearn import metrics
+from sklearn.metrics import r2_score
+from sklearn.metrics import mean_squared_error
+import math
+from sklearn.svm import SVC
+
+da = pd.read_csv('D:\wine.csv')
+
+X, y = da.drop(columns = ['Class']).values, da['Class'].values
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.15, random_state = 42)
+sc = StandardScaler()
+X_train_std = sc.fit_transform(X_train)
+X_test_std = sc.transform(X_test)
+
+classifier = LogisticRegression(random_state = 42)
+classifier.fit(X_train, y_train)
+y_train_pred = classifier.predict(X_train)
+print("Logistic Regression for all attributes:")
+print( "Train accuracy: ", metrics.accuracy_score(y_train, y_train_pred) )
+y_pred = classifier.predict(X_test)
+print( "Test accuracy: ", metrics.accuracy_score(y_test, y_pred) )
+mse_train = mean_squared_error(y_train, y_train_pred)
+mse_test = mean_squared_error(y_test, y_pred)
+print('RMSE Train: %.3f, Test: %.3f' %(math.sqrt(mse_train), math.sqrt(mse_test)))
+print('R^2 Train: %.3f, Test: %.3f' %(r2_score(y_train, y_train_pred), r2_score(y_test, y_pred)))
+
+pca = PCA(n_components = 3)
+X_train_pca = pca.fit_transform(X_train_std)
+X_test_pca = pca.transform(X_test_std)
+classifier.fit(X_train_pca, y_train)
+y_train_pred = classifier.predict(X_train_pca)
+print("Logistic Regression for 3 components:")
+print( "Train accuracy: ", metrics.accuracy_score(y_train, y_train_pred) )
+y_pred = classifier.predict(X_test_pca)
+print( "test accuracy: ", metrics.accuracy_score(y_test, y_pred) )
+mse_train = mean_squared_error(y_train, y_train_pred)
+mse_test = mean_squared_error(y_test, y_pred)
+print('RMSE Train: %.3f, Test: %.3f' %(math.sqrt(mse_train), math.sqrt(mse_test)))
+print('R^2 Train: %.3f, Test: %.3f' %(r2_score(y_train, y_train_pred), r2_score(y_test, y_pred)))
+
+svm = SVC(kernel="linear")
+svm.fit(X_train, y_train)
+y_train_pred = svm.predict(X_train)
+print("SVM for all attributes:")
+print( "Train accuracy: ", metrics.accuracy_score(y_train, y_train_pred) )
+y_pred = svm.predict(X_test)
+print( "Test accuracy: ", metrics.accuracy_score(y_test, y_pred) )
+mse_train = mean_squared_error(y_train, y_train_pred)
+mse_test = mean_squared_error(y_test, y_pred)
+print('RMSE Train: %.3f, Test: %.3f' %(math.sqrt(mse_train), math.sqrt(mse_test)))
+print('R^2 Train: %.3f, Test: %.3f' %(r2_score(y_train, y_train_pred), r2_score(y_test, y_pred)))
+
+pca = PCA(n_components = 3)
+X_train_pca = pca.fit_transform(X_train_std)
+X_test_pca = pca.transform(X_test_std)
+svm.fit(X_train_pca, y_train)
+y_train_pred = svm.predict(X_train_pca)
+print("SVM for 3 components:")
+print( "Train accuracy: ", metrics.accuracy_score(y_train, y_train_pred) )
+y_pred = svm.predict(X_test_pca)
+print( "test accuracy: ", metrics.accuracy_score(y_test, y_pred) )
+mse_train = mean_squared_error(y_train, y_train_pred)
+mse_test = mean_squared_error(y_test, y_pred)
+print('RMSE Train: %.3f, Test: %.3f' %(math.sqrt(mse_train), math.sqrt(mse_test)))
+print('R^2 Train: %.3f, Test: %.3f' %(r2_score(y_train, y_train_pred), r2_score(y_test, y_pred)))
