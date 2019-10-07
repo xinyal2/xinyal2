@@ -1,0 +1,58 @@
+import pandas as pd
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import cross_val_score
+import time
+
+df = pd.read_csv('D:\ccdefault.csv')
+
+X1 = df[df.columns[2:12]]
+X = X1.drop(columns = ['AGE']).values
+y = df['DEFAULT'].values
+k_range = range(1, 11)
+scores_train = []
+scores_test = []
+start = time.time()
+for k in k_range:
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state=k)
+    tree = DecisionTreeClassifier(max_depth = 5)
+    tree.fit(X_train, y_train)
+    y_train_pred = dt.predict(X_train)
+    y_test_pred = dt.predict(X_test)
+    scores_train.append(accuracy_score(y_train, y_train_pred))
+    scores_test.append(accuracy_score(y_test, y_test_pred))
+end = time.time()
+print(scores_train)
+print(scores_test)
+print("Mean of Accuracy in train set: {}".format(np.mean(scores_train)))
+print("Mean of Accuracy in test set: {}".format(np.mean(scores_test)))
+print("Standard deviation of Accuracy in train set: {}".format(np.std(scores_train)))
+print("Standard deviation of Accuracy in test set: {}".format(np.std(scores_test)))
+print(end - start)
+
+X1 = df[df.columns[2:12]]
+X = X1.drop(columns = ['AGE']).values
+y = df['DEFAULT'].values
+start = time.time()
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state=42)
+tree = DecisionTreeClassifier(max_depth = 5)
+scores_train = []
+scores_test = []
+tree_train_cv = cross_val_score(tree, X_train, y_train, cv=10)
+tree_test_cv = cross_val_score(tree, X_test, y_test, cv=10)
+scores_train.append(tree_train_cv)
+scores_test.append(tree_test_cv)
+scores_train_mean = np.mean(tree_train_cv)
+scores_test_mean = np.mean(tree_test_cv)
+scores_train_std = np.std(tree_train_cv)
+scores_test_std = np.std(tree_test_cv)
+end = time.time()
+print(scores_train)
+print(scores_test)
+print(scores_train_mean)
+print(scores_test_mean)
+print(scores_train_std)
+print(scores_test_std)
+print(end - start)
