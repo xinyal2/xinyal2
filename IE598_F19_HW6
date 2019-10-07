@@ -56,3 +56,7 @@ print(scores_test_mean)
 print(scores_train_std)
 print(scores_test_std)
 print(end - start)
+
+print("My name is Xinya Liu")
+print("My NetID is: xinyal2")
+print("I hereby certify that I have read the University policy on Academic Integrity and that I am not in violation.")
