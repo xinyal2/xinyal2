@@ -1,0 +1,49 @@
+import pandas as pd
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import cross_val_score
+import time
+from sklearn.ensemble import RandomForestRegressor
+import numpy as np
+import matplotlib.pyplot as plt
+
+df = pd.read_csv('D:\ccdefault.csv')
+
+X1 = df[df.columns[2:12]]
+X = X1.drop(columns = ['AGE']).values
+y = df['DEFAULT'].values
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state=42)
+
+for i in [5, 10, 20, 50, 200]:
+    start = time.time()
+    rfr = RandomForestRegressor(n_estimators = i)
+    rfr.fit(X_train, y_train)
+    scores_train = []
+    scores_test = []
+    tree_train_cv = cross_val_score(rfr, X_train, y_train, cv=10)
+    tree_test_cv = cross_val_score(rfr, X_test, y_test, cv=10)
+    scores_train.append(tree_train_cv)
+    scores_test.append(tree_test_cv)
+    end = time.time()
+    print("n_estimators = ", i)
+    print("Train mean CV score: ", np.mean(scores_train))
+    print("Test mean CV score: ", np.mean(scores_test))
+    print("Train rfr_acc: ", rfr.score(X_train, y_train))
+    print("Test rfr_acc: ", rfr.score(X_test, y_test))
+    print(end-start)
+    
+    importances = rfr.feature_importances_
+sorted_index = np.argsort(importances)[::-1]
+x = range(len(importances))
+X2 = X1.drop(columns = ['AGE'])
+feature_names = list(X2.columns.values)
+labels = np.array(feature_names)[sorted_index]
+plt.bar(x, importances[sorted_index], tick_label = labels)
+plt.xticks(rotation=90)
+plt.show()
+
+print("My name is Xinya Liu")
+print("My NetID is: xinyal2")
+print("I hereby certify that I have read the University policy on Academic Integrity and that I am not in violation.")
